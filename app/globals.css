@@ -111,8 +111,12 @@ h1, h2, h3, p { text-wrap: pretty; }
 .style-copy strong { margin: 7px 0 5px; font-size: 22px; letter-spacing: -.035em; }
 .style-copy > span:not(.style-category) { color: var(--muted); font-size: 13px; }
 .style-copy i { position: absolute; bottom: 20px; right: 20px; font-style: normal; }
+.gallery-more { display: flex; justify-content: center; margin-top: 42px; }
 
 .try-section { padding-bottom: 130px; }
+.home-try { padding-top: 110px; border-bottom: 1px solid var(--line); }
+.section-heading.compact { max-width: 1080px; }
+.section-heading.compact h2 { font-size: clamp(40px, 4.6vw, 68px); }
 .generator-panel { position: relative; display: grid; grid-template-columns: .85fr 1.15fr; min-height: 650px; overflow: hidden; border-radius: 28px; background: #e3ded2; box-shadow: inset 0 0 0 1px rgba(255,255,255,.6); }
 .generator-controls { padding: clamp(32px, 5vw, 72px); }
 .generator-controls h2 { margin: 0 0 38px; font-size: clamp(42px, 4vw, 62px); letter-spacing: -.06em; line-height: .96; }

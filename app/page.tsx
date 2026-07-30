@@ -61,16 +61,23 @@ export default function Home() {
         <p>Generic prompt tools produce longer sentences. DrawnKit gives every series a repeatable palette, line weight, paper texture and emotional temperature.</p>
       </section>
 
+      <section className="try-section shell home-try">
+        <div className="section-heading compact">
+          <div><p className="eyebrow">Try it now · no signup</p><h2>Describe it once.<br />Copy it in one click.</h2></div>
+          <p>No tutorial. No account. Type what you want to draw, choose a look, and use the prompt in the image tool you already know.</p>
+        </div>
+        <Generator />
+      </section>
+
       <section className="styles-section shell" id="styles">
         <div className="section-heading">
           <div><p className="eyebrow">The style library</p><h2>Twenty ways to feel human.</h2></div>
           <p>Each recipe is tested with real subjects—not invented from a list of fashionable words.</p>
         </div>
-        <StyleGallery />
-      </section>
-
-      <section className="try-section shell">
-        <Generator />
+        <StyleGallery featured />
+        <div className="gallery-more">
+          <Link className="button primary" href="/styles">Explore all 20 styles <span>→</span></Link>
+        </div>
       </section>
 
       <section className="comparison shell">

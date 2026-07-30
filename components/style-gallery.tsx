@@ -5,17 +5,17 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { styles } from "@/lib/styles";
 
-export function StyleGallery() {
+export function StyleGallery({ featured = false }: { featured?: boolean }) {
   const categories = ["All", ...new Set(styles.map((style) => style.category))];
   const [active, setActive] = useState("All");
-  const visible = useMemo(
-    () => active === "All" ? styles : styles.filter((style) => style.category === active),
-    [active]
-  );
+  const visible = useMemo(() => {
+    const filtered = active === "All" ? styles : styles.filter((style) => style.category === active);
+    return featured ? filtered.slice(0, 6) : filtered;
+  }, [active, featured]);
 
   return (
     <>
-      <div className="filter-row" role="group" aria-label="Filter styles">
+      {!featured && <div className="filter-row" role="group" aria-label="Filter styles">
         {categories.map((category) => (
           <button
             className={active === category ? "filter active" : "filter"}
@@ -27,7 +27,7 @@ export function StyleGallery() {
             {category}
           </button>
         ))}
-      </div>
+      </div>}
       <div className="style-grid">
         {visible.map((style, index) => (
           <Link className="style-card" href={`/styles/${style.slug}`} key={style.slug}>

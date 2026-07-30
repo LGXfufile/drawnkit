@@ -9,7 +9,7 @@ export function Header() {
           DrawnKit
         </Link>
         <div className="nav-links">
-          <Link href="/#styles">Styles</Link>
+          <Link href="/styles">Styles</Link>
           <Link href="/generator">Generator</Link>
           <Link href="/pricing">Pricing</Link>
         </div>
