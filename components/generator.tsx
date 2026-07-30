@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { track } from "@vercel/analytics";
 import { renderPrompt, styles } from "@/lib/styles";
 
 const models = ["ChatGPT Images", "Midjourney", "Gemini", "Flux"];
@@ -19,8 +20,10 @@ export function Generator({ initialSlug = "childlike-coloring" }: { initialSlug?
     try {
       await navigator.clipboard.writeText(output);
       setCopyState("copied");
+      track("prompt_copied", { style: selected.slug, model, outcome: "copied" });
     } catch {
       setCopyState("manual");
+      track("prompt_copied", { style: selected.slug, model, outcome: "clipboard_blocked" });
     }
     window.setTimeout(() => setCopyState("idle"), 2200);
   }

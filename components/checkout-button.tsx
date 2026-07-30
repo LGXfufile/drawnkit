@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@vercel/analytics";
 
 export function CheckoutButton({ placement = "pricing" }: { placement?: string }) {
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
@@ -10,6 +11,7 @@ export function CheckoutButton({ placement = "pricing" }: { placement?: string }
     if (state === "loading") return;
     setState("loading");
     setMessage("");
+    track("checkout_started", { offer: "founding-kit", placement });
     const popup = window.open("about:blank", "_blank");
     if (popup) {
       popup.opener = null;
@@ -33,6 +35,7 @@ export function CheckoutButton({ placement = "pricing" }: { placement?: string }
       else {
         setState("error");
         setMessage("Your browser blocked the checkout tab. Allow pop-ups and try again.");
+        track("checkout_failed", { reason: "popup_blocked", placement });
         return;
       }
       setState("idle");
@@ -40,6 +43,10 @@ export function CheckoutButton({ placement = "pricing" }: { placement?: string }
       popup?.close();
       setState("error");
       setMessage(error instanceof Error && error.name === "AbortError" ? "Checkout timed out. Your card was not charged." : error instanceof Error ? error.message : "Checkout is unavailable.");
+      track("checkout_failed", {
+        reason: error instanceof Error && error.name === "AbortError" ? "timeout" : "service_unavailable",
+        placement
+      });
     }
   }
 
