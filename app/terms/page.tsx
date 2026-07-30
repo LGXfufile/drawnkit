@@ -1,0 +1,3 @@
+export default function Terms() {
+  return <article className="legal shell"><h1>Terms</h1><p>Effective July 31, 2026</p><h2>License</h2><p>Your purchase grants you a personal and commercial-use license to use DrawnKit recipes in your own creative work. You may not resell, redistribute, publish or bundle the recipes themselves.</p><h2>AI model terms</h2><p>DrawnKit supplies prompt recipes, not generated images. Your use of generated images remains subject to the terms and policies of the model you choose.</p><h2>Availability</h2><p>We work to keep the free studio and purchased delivery available, but external model and payment services may occasionally be unavailable.</p></article>;
+}
