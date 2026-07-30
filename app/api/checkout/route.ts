@@ -18,8 +18,19 @@ function allowed(ip: string) {
 }
 
 export async function POST(request: Request) {
+  const length = Number(request.headers.get("content-length") || "0");
+  if (length > 4096) return NextResponse.json({ message: "Request is too large." }, { status: 413 });
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
   if (!allowed(ip)) return NextResponse.json({ message: "Too many checkout attempts. Please wait one minute." }, { status: 429 });
+  let body: { offer?: string };
+  try {
+    const rawBody = await request.text();
+    if (rawBody.length > 4096) return NextResponse.json({ message: "Request is too large." }, { status: 413 });
+    body = JSON.parse(rawBody) as { offer?: string };
+  } catch {
+    return NextResponse.json({ message: "Invalid request." }, { status: 400 });
+  }
+  if (body.offer !== "founding-kit") return NextResponse.json({ message: "Unknown offer." }, { status: 400 });
   if (!isWaffoConfigured()) {
     return NextResponse.json(
       { message: "Secure checkout is being connected. The free studio is still open." },
@@ -28,8 +39,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json() as { offer?: string };
-    if (body.offer !== "founding-kit") return NextResponse.json({ message: "Unknown offer." }, { status: 400 });
     const client = getWaffoClient();
     const session = await client.checkout.createSession({
       productId: process.env.WAFFO_PRODUCT_ID!,
@@ -41,6 +50,13 @@ export async function POST(request: Request) {
     });
     const checkout = new URL(session.checkoutUrl);
     if (checkout.protocol !== "https:") throw new Error("INSECURE_CHECKOUT_URL");
+    const allowedHosts = (process.env.WAFFO_CHECKOUT_HOSTS || "checkout.waffo.com,.waffo.com,.waffo.app")
+      .split(",")
+      .map((host) => host.trim().toLowerCase())
+      .filter(Boolean);
+    const hostname = checkout.hostname.toLowerCase();
+    const trusted = allowedHosts.some((host) => host.startsWith(".") ? hostname.endsWith(host) : hostname === host);
+    if (!trusted) throw new Error("UNTRUSTED_CHECKOUT_URL");
     return NextResponse.json(
       { checkoutUrl: checkout.toString() },
       { headers: { "Cache-Control": "no-store" } }

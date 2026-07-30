@@ -3,9 +3,12 @@ import { verifyWebhook, WebhookEventType } from "@waffo/pancake-ts";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const length = Number(request.headers.get("content-length") || "0");
+  if (length > 262_144) return new Response("Payload too large", { status: 413 });
   const signature = request.headers.get("x-waffo-signature");
   if (!signature) return new Response("Missing signature", { status: 401 });
   const rawBody = await request.text();
+  if (rawBody.length > 262_144) return new Response("Payload too large", { status: 413 });
   try {
     const event = verifyWebhook(rawBody, signature, { environment: "prod" });
     if (event.mode !== "prod") return new Response("Wrong environment", { status: 400 });

@@ -10,7 +10,12 @@ export function CheckoutButton({ placement = "pricing" }: { placement?: string }
     if (state === "loading") return;
     setState("loading");
     setMessage("");
-    const popup = window.open("", "_blank", "noopener,noreferrer");
+    const popup = window.open("about:blank", "_blank");
+    if (popup) {
+      popup.opener = null;
+      popup.document.title = "Opening secure checkout…";
+      popup.document.body.textContent = "Opening secure checkout…";
+    }
     try {
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 12_000);
@@ -24,8 +29,12 @@ export function CheckoutButton({ placement = "pricing" }: { placement?: string }
       const data = await response.json() as { checkoutUrl?: string; message?: string };
       if (!response.ok || !data.checkoutUrl) throw new Error(data.message || "Checkout is taking a short pause.");
       if (!data.checkoutUrl.startsWith("https://")) throw new Error("The checkout URL was not secure.");
-      if (popup) popup.location.href = data.checkoutUrl;
-      else window.open(data.checkoutUrl, "_blank", "noopener,noreferrer");
+      if (popup) popup.location.replace(data.checkoutUrl);
+      else {
+        setState("error");
+        setMessage("Your browser blocked the checkout tab. Allow pop-ups and try again.");
+        return;
+      }
       setState("idle");
     } catch (error) {
       popup?.close();

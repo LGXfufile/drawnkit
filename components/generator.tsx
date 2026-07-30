@@ -11,14 +11,18 @@ export function Generator({ initialSlug = "childlike-coloring" }: { initialSlug?
   const [slug, setSlug] = useState(initialSlug);
   const [subject, setSubject] = useState("a tiny fox carrying a paper lantern through the rain");
   const [model, setModel] = useState(models[0]);
-  const [copied, setCopied] = useState(false);
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "manual">("idle");
   const selected = styles.find((style) => style.slug === slug) || styles[0];
   const output = useMemo(() => renderPrompt(selected.prompt, subject), [selected, subject]);
 
   async function copyPrompt() {
-    await navigator.clipboard.writeText(output);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    try {
+      await navigator.clipboard.writeText(output);
+      setCopyState("copied");
+    } catch {
+      setCopyState("manual");
+    }
+    window.setTimeout(() => setCopyState("idle"), 2200);
   }
 
   return (
@@ -61,13 +65,17 @@ export function Generator({ initialSlug = "childlike-coloring" }: { initialSlug?
           <div><span>Optimized for {model}</span><span>{output.length} characters</span></div>
           <p>{selected.free ? output : `${output.slice(0, 190)}…`}</p>
           {selected.free ? (
-            <button className="button dark" type="button" onClick={copyPrompt}>{copied ? "Copied beautifully ✓" : "Copy prompt"}</button>
+            <button className="button dark" type="button" onClick={copyPrompt}>
+              {copyState === "copied" ? "Copied beautifully ✓" : copyState === "manual" ? "Select the text to copy" : "Copy prompt"}
+            </button>
           ) : (
             <Link className="button dark" href="/pricing">Unlock this recipe — $1</Link>
           )}
         </div>
       </div>
-      <div className={copied ? "toast show" : "toast"} role="status">Copied. Now make something lovely.</div>
+      <div className={copyState !== "idle" ? "toast show" : "toast"} role="status">
+        {copyState === "manual" ? "Clipboard access is blocked. Select the prompt text manually." : "Copied. Now make something lovely."}
+      </div>
     </section>
   );
 }
