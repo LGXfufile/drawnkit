@@ -70,7 +70,13 @@ export async function POST(request: Request) {
       { checkoutUrl: checkout.toString() },
       { headers: { "Cache-Control": "no-store" } }
     );
-  } catch {
+  } catch (error) {
+    const safeError = error instanceof Error ? {
+      name: error.name,
+      message: error.message.slice(0, 160),
+      status: "status" in error && typeof error.status === "number" ? error.status : undefined
+    } : { name: "UnknownError", message: "Unknown checkout failure" };
+    console.error("checkout_creation_failed", safeError);
     return NextResponse.json(
       { message: "Checkout could not open. Your card was not charged." },
       { status: 502, headers: { "Cache-Control": "no-store" } }
