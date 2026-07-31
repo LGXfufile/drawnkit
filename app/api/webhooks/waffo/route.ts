@@ -3,6 +3,10 @@ import { completeOrderOnce, getOrder } from "@/lib/payments";
 
 export const runtime = "nodejs";
 
+function waffoEnvironment() {
+  return process.env.WAFFO_ENVIRONMENT === "test" ? "test" as const : "prod" as const;
+}
+
 export async function POST(request: Request) {
   const length = Number(request.headers.get("content-length") || "0");
   if (length > 262_144) return new Response("Payload too large", { status: 413 });
@@ -11,8 +15,9 @@ export async function POST(request: Request) {
   const rawBody = await request.text();
   if (rawBody.length > 262_144) return new Response("Payload too large", { status: 413 });
   try {
-    const event = verifyWebhook<WebhookEventData>(rawBody, signature, { environment: "prod" });
-    if (event.mode !== "prod") return new Response("Wrong environment", { status: 400 });
+    const environment = waffoEnvironment();
+    const event = verifyWebhook<WebhookEventData>(rawBody, signature, { environment });
+    if (event.mode !== environment) return new Response("Wrong environment", { status: 400 });
     if (!process.env.WAFFO_STORE_ID || event.storeId !== process.env.WAFFO_STORE_ID) return new Response("Wrong store", { status: 400 });
     if (event.eventType === WebhookEventType.OrderCompleted || event.eventType === WebhookEventType.RefundSucceeded) {
       const externalId = event.data.orderMerchantExternalId;
