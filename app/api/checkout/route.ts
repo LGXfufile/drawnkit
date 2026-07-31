@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     await updateOrder({ ...pending, sessionId: session.sessionId, updatedAt: new Date().toISOString() });
     const checkout = new URL(session.checkoutUrl);
     if (checkout.protocol !== "https:") throw new Error("INSECURE_CHECKOUT_URL");
-    const allowedHosts = (process.env.WAFFO_CHECKOUT_HOSTS || "checkout.waffo.com,.waffo.com,.waffo.app")
+    const allowedHosts = (process.env.WAFFO_CHECKOUT_HOSTS || "pancake.waffo.ai,checkout.waffo.com,.waffo.com,.waffo.app")
       .split(",")
       .map((host) => host.trim().toLowerCase())
       .filter(Boolean);
