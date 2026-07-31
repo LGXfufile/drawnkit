@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       .filter(Boolean);
     const hostname = checkout.hostname.toLowerCase();
     const trusted = allowedHosts.some((host) => host.startsWith(".") ? hostname.endsWith(host) : hostname === host);
-    if (!trusted) throw new Error("UNTRUSTED_CHECKOUT_URL");
+    if (!trusted) throw new Error(`UNTRUSTED_CHECKOUT_URL:${hostname}`);
     return NextResponse.json(
       { checkoutUrl: checkout.toString() },
       { headers: { "Cache-Control": "no-store" } }
