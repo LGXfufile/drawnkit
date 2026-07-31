@@ -9,7 +9,12 @@ function privateKey() {
 }
 
 export function isWaffoConfigured() {
-  return Boolean(process.env.WAFFO_MERCHANT_ID && privateKey() && process.env.WAFFO_PRODUCT_ID);
+  return Boolean(
+    process.env.WAFFO_MERCHANT_ID &&
+    privateKey() &&
+    process.env.WAFFO_PRODUCT_ID &&
+    process.env.WAFFO_STORE_ID
+  );
 }
 
 export function getWaffoClient() {

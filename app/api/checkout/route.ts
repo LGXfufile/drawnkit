@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getWaffoClient, isWaffoConfigured } from "@/lib/waffo";
 import { site } from "@/lib/site";
+import { createPendingOrder, isPaymentStoreConfigured, updateOrder } from "@/lib/payments";
+import { randomBytes } from "node:crypto";
 
 export const runtime = "nodejs";
 
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid request." }, { status: 400 });
   }
   if (body.offer !== "founding-kit") return NextResponse.json({ message: "Unknown offer." }, { status: 400 });
-  if (!isWaffoConfigured()) {
+  if (!isWaffoConfigured() || !isPaymentStoreConfigured()) {
     return NextResponse.json(
       { message: "Secure checkout is being connected. The free studio is still open." },
       { status: 503, headers: { "Retry-After": "300" } }
@@ -39,15 +41,22 @@ export async function POST(request: Request) {
   }
 
   try {
+    const claim = randomBytes(24).toString("base64url");
+    const externalId = `dk_${claim}`;
+    const now = new Date().toISOString();
+    const pending = { externalId, claim, status: "pending" as const, offer: "founding-kit-v1" as const, createdAt: now, updatedAt: now };
+    await createPendingOrder(pending);
     const client = getWaffoClient();
     const session = await client.checkout.createSession({
       productId: process.env.WAFFO_PRODUCT_ID!,
       currency: "USD",
-      successUrl: `${site.url}/purchase/success`,
+      successUrl: `${site.url}/purchase/success?claim=${encodeURIComponent(claim)}`,
       expiresInSeconds: 1800,
       darkMode: true,
-      metadata: { offer: "founding-kit-v1" }
+      metadata: { offer: "founding-kit-v1" },
+      orderMerchantExternalId: externalId
     });
+    await updateOrder({ ...pending, sessionId: session.sessionId, updatedAt: new Date().toISOString() });
     const checkout = new URL(session.checkoutUrl);
     if (checkout.protocol !== "https:") throw new Error("INSECURE_CHECKOUT_URL");
     const allowedHosts = (process.env.WAFFO_CHECKOUT_HOSTS || "checkout.waffo.com,.waffo.com,.waffo.app")
